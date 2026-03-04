@@ -1,4 +1,4 @@
-# StackFood Flutter App
+# QA Flutter App Template
 
 A production-grade Flutter food delivery application demonstrating **offline-first architecture**, **clean code patterns**, and **real-world API integration**. Use this project as a learning resource or as a **template** to kick-start your own Flutter app.
 
@@ -45,10 +45,10 @@ A production-grade Flutter food delivery application demonstrating **offline-fir
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Syed-Bipul-Rahman/fetch_data_flutter_task.git
+git clone https://github.com/sparktechagency/QA-Flutter-Template.git
 
 # 2. Navigate to project directory
-cd fetch_data_flutter_task
+cd QA-Flutter-Template
 
 # 3. Install dependencies
 flutter pub get
@@ -1353,20 +1353,6 @@ Obx(() {
 });
 ```
 
-#### Scroll Behavior
-
-```
-User scrolls UP (finger moves up, content goes up)
-  --> App bar HIDES, search bar overlay APPEARS
-
-User scrolls DOWN (finger moves down, content comes back)
-  --> App bar SHOWS, search bar overlay HIDES
-
-User reaches within 200px of bottom
-  --> loadMoreRestaurants() triggers automatically
-```
-
----
 
 ### Widgets
 
@@ -1473,66 +1459,13 @@ RetryWidget(
 
 ---
 
-## API Reference
-
-### Base URL
-
-```
-https://stackfood-admin.6amtech.com
-```
-
-### Required Headers
-
-```
-Content-Type: application/json; charset=UTF-8
-zoneId: [1]
-latitude: 23.735129
-longitude: 90.425614
-```
-
-### Endpoints
-
-| Method | Endpoint | Response Shape | Used For |
-|--------|----------|---------------|----------|
-| GET | `/api/v1/banners` | `{ "banners": [...] }` | Promotional banners |
-| GET | `/api/v1/categories` | `[...]` (plain array) | Food categories |
-| GET | `/api/v1/products/popular` | `{ "products": [...] }` | Popular food items |
-| GET | `/api/v1/campaigns/item` | `[...]` (plain array) | Campaign/deal items |
-| GET | `/api/v1/restaurants/get-restaurants/all?offset=0&limit=10` | `{ "restaurants": { "total_size": N, "data": [...] } }` | Paginated restaurants |
-
-### Testing with cURL
-
-```bash
-# Fetch banners
-curl -X GET "https://stackfood-admin.6amtech.com/api/v1/banners" \
-  -H "Content-Type: application/json; charset=UTF-8" \
-  -H "zoneId: [1]" \
-  -H "latitude: 23.735129" \
-  -H "longitude: 90.425614"
-
-# Fetch categories
-curl -X GET "https://stackfood-admin.6amtech.com/api/v1/categories" \
-  -H "Content-Type: application/json; charset=UTF-8" \
-  -H "zoneId: [1]" \
-  -H "latitude: 23.735129" \
-  -H "longitude: 90.425614"
-
-# Fetch restaurants (page 1, 10 items)
-curl -X GET "https://stackfood-admin.6amtech.com/api/v1/restaurants/get-restaurants/all?offset=0&limit=10" \
-  -H "Content-Type: application/json; charset=UTF-8" \
-  -H "zoneId: [1]" \
-  -H "latitude: 23.735129" \
-  -H "longitude: 90.425614"
-```
-
----
 
 ## Using This Project as a Template
 
 ### Step 1: Clone and Rename
 
 ```bash
-git clone https://github.com/Syed-Bipul-Rahman/fetch_data_flutter_task.git my_app
+git clone https://github.com/sparktechagency/QA-Flutter-Template
 cd my_app
 
 # Update package name in pubspec.yaml
@@ -1854,14 +1787,10 @@ Configuration in `ios/Runner/Info.plist`:
 ### App not fetching data
 
 ```bash
-# 1. Check if the API is reachable
-curl https://stackfood-admin.6amtech.com/api/v1/banners \
-  -H "zoneId: [1]" -H "latitude: 23.735129" -H "longitude: 90.425614"
-
-# 2. Check Flutter logs
+# 1. Check Flutter logs
 flutter run --verbose
 
-# 3. Check for analysis issues
+# 2. Check for analysis issues
 flutter analyze
 ```
 
@@ -1893,20 +1822,3 @@ flutter run -d ios
 
 ---
 
-## Future Enhancements
-
-- Search functionality with debounced API calls
-- Filter and sort options for restaurants/foods
-- User authentication (login/register)
-- Order placement and tracking
-- Push notifications via FCM
-- Multi-language support (i18n)
-- Dark mode theme
-- Analytics and crash reporting
-- Unit and integration tests
-
----
-
-## License
-
-This project is for demonstration and learning purposes.
