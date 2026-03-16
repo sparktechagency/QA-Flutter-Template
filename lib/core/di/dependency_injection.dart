@@ -5,6 +5,7 @@ import '../../features/home/presentation/controllers/home_controller.dart';
 import '../services/api_service.dart';
 import '../services/cache_service.dart';
 import '../services/connectivity_service.dart';
+import '../services/storage_service.dart';
 
 /// Dependency Injection setup for the application.
 ///
@@ -57,6 +58,11 @@ class DependencyInjection {
     Get.lazyPut<CacheService>(() => CacheService(), fenix: true);
     Get.lazyPut<ApiService>(() => ApiService(), fenix: true);
     Get.lazyPut<ConnectivityService>(() => ConnectivityService(), fenix: true);
+
+    // StorageService — initialized eagerly because SharedPreferences.getInstance() is async
+    final storageService = StorageService();
+    await storageService.init();
+    Get.put<StorageService>(storageService, permanent: true);
 
     // Repositories
     Get.lazyPut<HomeRepository>(

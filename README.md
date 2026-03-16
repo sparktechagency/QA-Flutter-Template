@@ -15,6 +15,12 @@ A production-grade Flutter food delivery application demonstrating **offline-fir
   - [ApiService](#1-apiservice)
   - [CacheService](#2-cacheservice)
   - [ConnectivityService](#3-connectivityservice)
+  - [StorageService](#4-storageservice)
+- [Navigation System](#navigation-system)
+  - [AppRoutes](#approutes)
+  - [AppPages & Bindings](#apppages--bindings)
+  - [Activating Named Routing](#activating-named-routing)
+  - [Navigation Examples](#navigation-examples)
 - [Dependency Injection](#dependency-injection)
 - [Exception Handling](#exception-handling)
 - [Feature: Home](#feature-home)
@@ -884,6 +890,216 @@ void _listenToConnectivity() {
     }
   });
 }
+```
+
+---
+
+## 4. StorageService
+
+**File:** `lib/core/services/storage_service.dart`
+
+A lightweight, typed wrapper around Flutter's `shared_preferences` package for storing simple persistent key-value data (tokens, flags, user preferences, etc.).
+
+> **Difference from CacheService:** `CacheService` (Hive) is designed for caching structured API response objects. `StorageService` (SharedPreferences) is for small, primitive values like auth tokens, settings flags, and user identifiers.
+
+### Accessing StorageService
+
+```dart
+final storage = Get.find<StorageService>();
+```
+
+### Writing Data
+
+```dart
+await storage.setString(StorageKeys.authToken, 'your_jwt_token');
+await storage.setBool(StorageKeys.isLoggedIn, true);
+await storage.setInt(StorageKeys.userId, 42);
+await storage.setDouble('discount_rate', 0.15);
+await storage.setStringList('recent_searches', ['pizza', 'burger']);
+```
+
+### Reading Data
+
+```dart
+final token   = storage.getString(StorageKeys.authToken);     // String?
+final isLoggedIn = storage.getBool(StorageKeys.isLoggedIn) ?? false;
+final userId  = storage.getInt(StorageKeys.userId);           // int?
+final recent  = storage.getStringList('recent_searches');     // List<String>?
+```
+
+### Removing Data
+
+```dart
+// Remove one key
+await storage.remove(StorageKeys.authToken);
+
+// Wipe everything (e.g. on logout)
+await storage.clear();
+```
+
+### StorageKeys
+
+All storage keys live in the `StorageKeys` abstract class in the same file. Always use these constants — never hard-code raw strings.
+
+```dart
+abstract class StorageKeys {
+  // Auth
+  static const String authToken      = 'auth_token';
+  static const String refreshToken   = 'refresh_token';
+  static const String isLoggedIn     = 'is_logged_in';
+
+  // User
+  static const String userId         = 'user_id';
+  static const String userName       = 'user_name';
+  static const String userEmail      = 'user_email';
+
+  // App Settings
+  static const String isDarkMode        = 'is_dark_mode';
+  static const String selectedLanguage  = 'selected_language';
+  static const String isFirstLaunch     = 'is_first_launch';
+}
+```
+
+To add a new key, simply add a constant to `StorageKeys`:
+
+```dart
+static const String fcmToken = 'fcm_token';
+```
+
+### Initialization
+
+`StorageService` is initialized eagerly in `DependencyInjection.init()` before the app starts. No manual setup is required.
+
+---
+
+## Navigation System
+
+**Files:**
+- `lib/core/routes/app_routes.dart` — route name constants
+- `lib/core/routes/app_pages.dart` — `GetPage` definitions and `Bindings`
+
+This template uses **GetX named routing**, which gives you URL-like navigation, automatic dependency injection per route, and easy deep-link support.
+
+### AppRoutes
+
+`AppRoutes` holds all route name constants. Never use raw strings for navigation.
+
+```dart
+// lib/core/routes/app_routes.dart
+abstract class AppRoutes {
+  static const String initial = '/';
+  static const String home    = '/home';
+
+  // Add your routes here:
+  // static const String login    = '/login';
+  // static const String profile  = '/profile';
+  // static const String settings = '/settings';
+}
+```
+
+### AppPages & Bindings
+
+`AppPages.routes` maps each route name to a page widget and a `Bindings` class. The binding provides the controller/service dependencies for that page via `Get.lazyPut`.
+
+```dart
+// lib/core/routes/app_pages.dart
+abstract class AppPages {
+  static final List<GetPage> routes = [
+    GetPage(
+      name: AppRoutes.home,
+      page: () => const HomePage(),
+      binding: HomeBinding(),
+    ),
+    // Add more pages here
+  ];
+}
+```
+
+**Adding a new page + binding:**
+
+```dart
+// 1. Add route constant in AppRoutes
+static const String profile = '/profile';
+
+// 2. Add GetPage in AppPages.routes
+GetPage(
+  name: AppRoutes.profile,
+  page: () => const ProfilePage(),
+  binding: ProfileBinding(),
+),
+
+// 3. Create the binding class
+class ProfileBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<ProfileRepository>(
+      () => ProfileRepository(
+        apiService: Get.find<ApiService>(),
+        cacheService: Get.find<CacheService>(),
+      ),
+    );
+    Get.lazyPut<ProfileService>(
+      () => ProfileService(repository: Get.find<ProfileRepository>()),
+    );
+    Get.lazyPut<ProfileController>(
+      () => ProfileController(service: Get.find<ProfileService>()),
+    );
+  }
+}
+```
+
+### Activating Named Routing
+
+The routes are ready to use. To switch from the current `home:` approach to full named routing, make the following change in `lib/app.dart`:
+
+```dart
+// lib/app.dart — inside GetMaterialApp(...)
+
+// Add these two imports at the top of the file:
+import 'core/routes/app_routes.dart';
+import 'core/routes/app_pages.dart';
+
+// Replace:
+//   home: child,
+// With:
+  initialRoute: AppRoutes.home,
+  getPages: AppPages.routes,
+```
+
+> The existing `home: child` (used by ScreenUtilInit) still works perfectly for single-screen apps. Switch to `initialRoute` + `getPages` only when you start adding multiple screens.
+
+### Navigation Examples
+
+```dart
+// ─── Basic navigation ──────────────────────────────────────────────────────
+
+// Push a new screen
+Get.toNamed(AppRoutes.profile);
+
+// Push and remove the current screen
+Get.offNamed(AppRoutes.home);
+
+// Push and clear the entire back-stack (e.g. after login)
+Get.offAllNamed(AppRoutes.home);
+
+// Go back
+Get.back();
+
+// ─── With arguments ────────────────────────────────────────────────────────
+
+// Pass data
+Get.toNamed(AppRoutes.profile, arguments: {'userId': '42'});
+
+// Receive data inside the destination page/controller
+final args = Get.arguments as Map<String, dynamic>;
+final userId = args['userId'];
+
+// ─── With query parameters ─────────────────────────────────────────────────
+
+Get.toNamed('${AppRoutes.profile}?tab=orders');
+
+// Receive inside the controller
+final tab = Get.parameters['tab']; // 'orders'
 ```
 
 ---
